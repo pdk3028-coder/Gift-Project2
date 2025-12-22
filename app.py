@@ -87,10 +87,12 @@ def admin_add_gift():
     
     image_path = ''
     if file and file.filename != '':
-        filename = secure_filename(file.filename)
-        # Add timestamp to ensure uniqueness
+        # Fix: secure_filename removes Korean characters. Use timestamp + extension instead.
+        ext = os.path.splitext(file.filename)[1]
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        filename = f"{timestamp}_{filename}"
+        # Add random suffix to avoid collision if multiple uploads happen at absolute same second
+        import uuid
+        filename = f"{timestamp}_{uuid.uuid4().hex[:8]}{ext}"
         filepath = os.path.join(app.config['GIFT_IMAGE_FOLDER'], filename)
         file.save(filepath)
         # Store relative path for serving
