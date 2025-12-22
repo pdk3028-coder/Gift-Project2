@@ -267,15 +267,12 @@ def upsert_employees_from_excel(filepath):
             s = str(x).strip()
             if s.lower() in ['nan', 'none', '', 'nat']:
                 return ''
-            try:
-                # Try converting to float
-                f = float(s)
-                # If it's effectively an integer (e.g., 12345.0), return as int string
-                if f.is_integer():
-                    return str(int(f))
-                return s
-            except ValueError:
-                return s # Return original string if not a number
+            
+            # V15 Fix: Only remove trailing .0 artifact. Do NOT cast to float/int
+            # as that removes leading zeros (e.g. "0123" -> 123.0 -> "123")
+            if s.endswith('.0'):
+                return s[:-2]
+            return s
                 
         return series.apply(convert_val)
 
