@@ -10,8 +10,11 @@ from flask_limiter.util import get_remote_address
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here' # Replace with a real secret key
 app.permanent_session_lifetime = timedelta(minutes=30)
-app.config['UPLOAD_FOLDER'] = 'uploads/'
-app.config['GIFT_IMAGE_FOLDER'] = 'uploads/gift_images/'
+
+# V14: Use absolute paths for PythonAnywhere compatibility
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'uploads')
+app.config['GIFT_IMAGE_FOLDER'] = os.path.join(basedir, 'uploads', 'gift_images')
 os.makedirs(app.config['GIFT_IMAGE_FOLDER'], exist_ok=True)
 
 # V10: Rate Limiting
