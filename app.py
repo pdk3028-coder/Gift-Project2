@@ -18,10 +18,17 @@ app.config['GIFT_IMAGE_FOLDER'] = os.path.join(basedir, 'uploads', 'gift_images'
 os.makedirs(app.config['GIFT_IMAGE_FOLDER'], exist_ok=True)
 
 # V10: Rate Limiting
+# PythonAnywhere 등의 프록시 환경에서는 get_remote_address가 프록시 IP를 반환하여 
+# 모든 사용자가 동일한 IP로 차단될 수 있습니다. 이를 방지하기 위해 X-Forwarded-For를 고려합니다.
+def get_actual_remote_address():
+    if request.headers.getlist("X-Forwarded-For"):
+        return request.headers.getlist("X-Forwarded-For")[0]
+    return get_remote_address()
+
 limiter = Limiter(
-    get_remote_address,
+    key_func=get_actual_remote_address,
     app=app,
-    default_limits=["200 per day", "50 per hour"],
+    default_limits=[], # V16: 사용자의 요청으로 전체 접속 제한 해제
     storage_uri="memory://"
 )
 
