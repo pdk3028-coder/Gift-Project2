@@ -3,41 +3,448 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>대시보드 - 사원 인사정보 시스템</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>색상 및 사이즈 조사</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
+        .card { border-radius: 1.25rem; border: none; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025); }
+        h1, h2, h3 { letter-spacing: -0.02em; }
+        
+        /* Modern Gender Switch */
+        .gender-switch {
+            display: flex; background: #e2e8f0; border-radius: 1rem; padding: 0.35rem; margin-bottom: 1.2rem;
+        }
+        .gender-input { display: none; }
+        .gender-label {
+            flex: 1; text-align: center; padding: 0.75rem; border-radius: 0.75rem;
+            cursor: pointer; font-weight: 600; color: #64748b; font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .gender-input:checked + .gender-label {
+            background: white; color: var(--primary-color); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        /* Modern Section Cards */
+        .section-card {
+            background: white; border: 1px solid #f1f5f9; border-radius: 1.25rem; 
+            padding: 1.5rem; margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+            transition: border-color 0.3s;
+        }
+        .section-card:focus-within { border-color: #cbd5e1; }
+        .section-title {
+            font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-bottom: 1.25rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .section-title span.badge {
+            background: var(--primary-color); color: white; border-radius: 50%;
+            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; font-weight: bold;
+        }
+
+        /* Chip Options (Pill Buttons) */
+        .chip-group { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1.25rem; }
+        .chip-input { display: none; }
+        .chip-label {
+            padding: 0.75rem 1.1rem; border: 1.5px solid #e2e8f0; border-radius: 2rem;
+            background-color: white; color: #475569; font-size: 0.95rem; font-weight: 500;
+            cursor: pointer; transition: all 0.2s ease; text-align: center; flex: 1 1 auto;
+            min-width: calc(33.333% - 0.6rem); /* 3 in a row on mobile */
+        }
+        .chip-input:checked + .chip-label {
+            background-color: var(--primary-color); color: white; border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25); transform: translateY(-1px);
+        }
+        
+        .color-group .chip-label { min-width: calc(50% - 0.6rem); } /* 2 in a row for colors */
+        
+        .submit-btn {
+            width: 100%; padding: 1rem; border-radius: 1rem; font-size: 1.1rem; font-weight: 600;
+            margin-top: 1rem; letter-spacing: 0.02em; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        
+        /* Required field styling */
+        .required-mark { color: #ef4444; margin-left: 0.2rem; }
+        .validation-msg { color: #ef4444; font-size: 0.85rem; margin-top: -0.5rem; margin-bottom: 1rem; display: none; }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: white; width: 90%; max-width: 400px;
+            border-radius: 1.25rem; padding: 1.5rem; transform: translateY(20px);
+            transition: transform 0.3s; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 1rem; text-align: center; }
+        .modal-body { margin-bottom: 1.5rem; font-size: 0.95rem; color: #475569; line-height: 1.5;}
+        .modal-body .summary-item { display: flex; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid #f1f5f9; }
+        .modal-body .summary-item:last-child { border-bottom: none; }
+        .modal-body .summary-label { font-weight: 600; color: #64748b; }
+        .modal-body .summary-value { font-weight: 700; color: var(--primary-color); text-align: right;}
+        .modal-actions { display: flex; gap: 0.75rem; }
+        .modal-btn { flex: 1; padding: 0.85rem; border-radius: 1rem; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: background 0.2s; }
+        .modal-btn-cancel { background: #f1f5f9; color: #64748b; }
+        .modal-btn-cancel:hover { background: #e2e8f0; }
+        .modal-btn-confirm { background: var(--primary-color); color: white; }
+        .modal-btn-confirm:hover { background: #1d4ed8; }
+
+        /* Readonly Styles */
+        .readonly-card {
+            background: white; border: 2px solid #10b981; border-radius: 1.25rem; 
+            padding: 1.5rem; margin-bottom: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1);
+        }
+        .readonly-section-title {
+            font-size: 1.15rem; font-weight: 700; color: #065f46; margin-bottom: 1.25rem;
+            display: flex; align-items: center; gap: 0.5rem; justify-content: center;
+        }
+    </style>
+    <script>
+        const optionsData = {
+            '남성': {
+                topSizes: ['95(M)', '100(L)', '105(XL)', '110(XXL)', '115(XXXL)', '120(XXXXL)'],
+                bottomSizes: ['29(S)', '30(M)', '32(L)', '34(XL)', '36(XXL)', '38(XXXL)'],
+                topColors: {
+                    '120(XXXXL)': ['블랙'],
+                    'default': ['블랙', '포그 그린 (FOG GREEN)']
+                },
+                bottomColors: {
+                    'default': ['블랙', '포그 그린 (FOG GREEN)']
+                }
+            },
+            '여성': {
+                topSizes: ['90(S)', '95(M)', '100(L)', '105(XL)'],
+                bottomSizes: ['25(XS)', '26(S)', '27(M)', '28(L)', '29~31(XL)'],
+                topColors: {
+                    '105(XL)': ['블랙'],
+                    'default': ['블랙', '슈가 블루 (Sugar Blue)']
+                },
+                bottomColors: {
+                    'default': ['블랙']
+                }
+            }
+        };
+
+        function renderChips(containerId, name, optionsArray, currentValue, onChangeCallback) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            if (!optionsArray || optionsArray.length === 0) {
+                container.innerHTML = '<span style="color:#94a3b8; font-size: 0.9rem;">이전 단계를 먼저 선택해주세요.</span>';
+                return;
+            }
+
+            optionsArray.forEach((opt, index) => {
+                const id = `${name}_${index}`;
+                // Input
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.name = name;
+                input.id = id;
+                input.value = opt;
+                input.className = 'chip-input';
+                input.required = true;
+                if (currentValue === opt) input.checked = true;
+                if (onChangeCallback) input.addEventListener('change', onChangeCallback);
+                
+                // Label
+                const label = document.createElement('label');
+                label.htmlFor = id;
+                label.className = 'chip-label';
+                label.innerText = opt;
+                
+                container.appendChild(input);
+                container.appendChild(label);
+            });
+        }
+
+        function getRadioValue(name) {
+            const el = document.querySelector(`input[name="${name}"]:checked`);
+            return el ? el.value : "";
+        }
+
+        function handleGenderChange(initialLoad=false) {
+            const gender = getRadioValue('gender');
+            if (!gender) return;
+            
+            // Update Top Sizes
+            let currentTopSize = initialLoad ? document.getElementById('hidden_top_size').value : "";
+            renderChips('top_size_group', 'top_size', optionsData[gender].topSizes, currentTopSize, () => handleTopSizeChange(false));
+            
+            // Update Bottom Sizes
+            let currentBottomSize = initialLoad ? document.getElementById('hidden_bottom_size').value : "";
+            renderChips('bottom_size_group', 'bottom_size', optionsData[gender].bottomSizes, currentBottomSize, () => handleBottomSizeChange(false));
+
+            if(!initialLoad){
+                 renderChips('top_color_group', 'top_color', [], "", null);
+                 renderChips('bottom_color_group', 'bottom_color', [], "", null);
+            } else {
+                 handleTopSizeChange(true);
+                 handleBottomSizeChange(true);
+            }
+        }
+
+        function handleTopSizeChange(initialLoad=false) {
+            const gender = getRadioValue('gender');
+            const size = getRadioValue('top_size');
+            
+            if (!gender || !size) return;
+            
+            let currentTopColor = initialLoad ? document.getElementById('hidden_top_color').value : "";
+            let colors = optionsData[gender].topColors[size] || optionsData[gender].topColors['default'];
+            
+            if (!initialLoad && colors.length === 1) {
+                currentTopColor = colors[0];
+            } else if (!initialLoad && colors.indexOf(currentTopColor) === -1) {
+                currentTopColor = "";
+            }
+
+            renderChips('top_color_group', 'top_color', colors, currentTopColor, null);
+        }
+
+        function handleBottomSizeChange(initialLoad=false) {
+            const gender = getRadioValue('gender');
+            const size = getRadioValue('bottom_size');
+            
+            if (!gender || !size) return;
+            
+            let currentBottomColor = initialLoad ? document.getElementById('hidden_bottom_color').value : "";
+            let colors = optionsData[gender].bottomColors[size] || optionsData[gender].bottomColors['default'];
+            
+            if (!initialLoad && colors.length === 1) {
+                currentBottomColor = colors[0];
+            } else if (!initialLoad && colors.indexOf(currentBottomColor) === -1) {
+                currentBottomColor = "";
+            }
+
+            renderChips('bottom_color_group', 'bottom_color', colors, currentBottomColor, null);
+        }
+
+        function showConfirmModal(event) {
+            event.preventDefault(); 
+            
+            const gender = getRadioValue('gender');
+            const topSize = getRadioValue('top_size');
+            const topColor = getRadioValue('top_color');
+            const bottomSize = getRadioValue('bottom_size');
+            const bottomColor = getRadioValue('bottom_color');
+            
+            if (!gender || !topSize || !topColor || !bottomSize || !bottomColor) {
+                alert('성별과 모든 의류 사이즈 및 색상을 선택해주세요.');
+                return;
+            }
+
+            const html = `
+                <div class="summary-item">
+                    <span class="summary-label">성별</span>
+                    <span class="summary-value">${gender}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">상의</span>
+                    <span class="summary-value">${topSize}<br>${topColor}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">하의</span>
+                    <span class="summary-value">${bottomSize}<br>${bottomColor}</span>
+                </div>
+                <div style="margin-top: 1.25rem; font-size: 0.9rem; text-align: center; color: #ef4444; font-weight: 600;">
+                    이대로 최종 제출하시겠습니까?
+                </div>
+            `;
+            
+            document.getElementById('modalSummary').innerHTML = html;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').classList.remove('active');
+        }
+
+        function submitForm() {
+            document.getElementById('optionForm').submit();
+        }
+
+        function toggleEditMode() {
+            const readonlySection = document.getElementById('readonlySection');
+            if (readonlySection) readonlySection.style.display = 'none';
+            document.getElementById('formSection').style.display = 'block';
+            window.scrollTo({ top: document.getElementById('formSection').offsetTop - 20, behavior: 'smooth' });
+        }
+
+
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Setup Gender Radios
+            document.querySelectorAll('input[name="gender"]').forEach(radio => {
+                radio.addEventListener('change', () => handleGenderChange(false));
+            });
+            
+            // Initialization for existing data
+            if(getRadioValue('gender')) handleGenderChange(true);
+
+            // Hook Form Submission
+            document.getElementById('optionForm').addEventListener('submit', showConfirmModal);
+        });
+    </script>
 </head>
 
 <body>
-    <div class="container">
-        <div class="card" style="text-align: center;">
-            <div class="card-header">
-                <h1 class="card-title">반갑습니다, {{ name }}님</h1>
-                <p class="card-description">원하시는 서비스를 선택해주세요.</p>
+    <!-- Hidden inputs to hold server selected values -->
+    <input type="hidden" id="hidden_top_size" value="{{ user.top_size }}">
+    <input type="hidden" id="hidden_top_color" value="{{ user.top_color }}">
+    <input type="hidden" id="hidden_bottom_size" value="{{ user.bottom_size }}">
+    <input type="hidden" id="hidden_bottom_color" value="{{ user.bottom_color }}">
+
+    <div class="container" style="max-width: 600px;"> <!-- narrower for mobile focus -->
+        <div class="card">
+            <div class="card-header" style="border-bottom: 1px solid #f1f5f9; margin-bottom: 1.5rem; padding-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
+                    <div style="flex: 1;">
+                        <h1 class="card-title" style="font-size: 1.3rem; margin-bottom: 0.3rem; word-break: keep-all;">의류 사이즈 조사</h1>
+                        <p class="card-description" style="margin-bottom: 0; font-size: 0.85rem; word-break: keep-all;">{{ name }}님, 원하시는 핏을 선택해주세요.</p>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 1rem; flex-shrink: 0; width: auto; min-width: auto; white-space: nowrap; margin-top: 0.2rem;">로그아웃</a>
+                </div>
             </div>
 
-            <div style="display: grid; gap: 1rem;">
-                {% if enable_info %}
-                <a href="{{ url_for('info_update') }}" class="btn btn-primary"
-                    style="height: 3.5rem; font-size: 1.1rem;">
-                    인사정보 수정
-                </a>
-                {% endif %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" style="border-radius: 1rem; text-align: center; font-weight: 500;">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
 
-                {% if enable_gift %}
-                <a href="{{ url_for('gift_update') }}" class="btn btn-secondary"
-                    style="margin-top: 0; background-color: white; border: 2px solid var(--primary-color); color: var(--primary-color); height: 3.5rem; font-size: 1.1rem;">
-                    선물 배송지 관리
-                </a>
-                {% endif %}
+            <!-- Section 0: Image Viewer Info -->
+            <div style="margin-bottom: 2rem; border-radius: 1.25rem; overflow: hidden; background-color: #f8fafc; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);">
+                <img src="{{ url_for('static', filename='proposal.jpg') }}" alt="26주년 기념품 카탈로그" style="width: 100%; height: auto; max-height: 800px; object-fit: contain; display: block;">
             </div>
 
-            <div class="section-divider"></div>
+            {% if user.top_size %}
+            <!-- 제출 확인 창 -->
+            <div id="readonlySection" class="readonly-card">
+                <div class="readonly-section-title">
+                    <span class="badge" style="background:#10b981; color:white; border-radius:50%; width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; font-size:0.9rem;">✓</span> 
+                    옵션 제출 완료 내역
+                </div>
+                
+                <div style="background: #f8fafc; border-radius: 1rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; padding-bottom: 0.75rem; border-bottom: 1px solid #e2e8f0; margin-bottom: 0.75rem;">
+                        <span style="color: #64748b; font-weight: 600;">성별 (Gender)</span>
+                        <span style="color: #0f172a; font-weight: 700;">{{ user.gender }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding-bottom: 0.75rem; border-bottom: 1px solid #e2e8f0; margin-bottom: 0.75rem;">
+                        <span style="color: #64748b; font-weight: 600;">상의 (Top)</span>
+                        <span style="color: #0f172a; font-weight: 700; text-align: right; line-height: 1.4;">{{ user.top_size }}<br/>{{ user.top_color }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #64748b; font-weight: 600;">하의 (Bottom)</span>
+                        <span style="color: #0f172a; font-weight: 700; text-align: right; line-height: 1.4;">{{ user.bottom_size }}<br/>{{ user.bottom_color }}</span>
+                    </div>
+                </div>
 
-            <a href="{{ url_for('logout') }}" style="color: var(--text-secondary); text-decoration: none;">로그아웃</a>
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <p style="font-size: 0.9rem; color: #64748b; line-height: 1.6; margin: 0;">성공적으로 데이터베이스에 최종 접수되었습니다!<br>옵션 변경이 필요하신 경우 아래 버튼을 눌러주세요.</p>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="button" class="btn" onclick="toggleEditMode()" style="flex: 1; padding: 0.9rem; border-radius: 1rem; font-size: 1rem; font-weight: 600; background: white; border: 1.5px solid #cbd5e1; color: #475569; transition: background 0.2s; cursor: pointer;">✏️ 수정하기</button>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 옵션 선택 폼 (기존에 제출한 적 있다면 숨김) -->
+            <div id="formSection" {% if user.top_size %}style="display: none;"{% endif %}>
+                <form id="optionForm" action="{{ url_for('dashboard') }}" method="POST">
+                    
+                    <!-- STEP 0: Integrated Gender Selection -->
+                    <div class="section-card">
+                        <div class="section-title"><span class="badge">A</span> 성별 선택 (Gender)</div>
+                        <div class="gender-switch">
+                            <input type="radio" id="gender_m" name="gender" value="남성" class="gender-input" required {% if user.gender == '남성' %}checked{% endif %}>
+                            <label for="gender_m" class="gender-label">남성 (Men)</label>
+                            
+                            <input type="radio" id="gender_w" name="gender" value="여성" class="gender-input" required {% if user.gender == '여성' %}checked{% endif %}>
+                            <label for="gender_w" class="gender-label">여성 (Women)</label>
+                        </div>
+                    </div>
+
+                <!-- STEP 1: TOP -->
+                <div class="section-card">
+                    <div class="section-title"><span class="badge">1</span> 상의 선택 (Top)</div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">
+                            사이즈 (Size) <span class="required-mark">*</span>
+                        </label>
+                        <div id="top_size_group" class="chip-group">
+                            <span style="color:#94a3b8; font-size: 0.9rem;">성별을 먼저 선택해주세요.</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">
+                            색상 (Color) <span class="required-mark">*</span>
+                        </label>
+                        <div id="top_color_group" class="chip-group color-group">
+                            <span style="color:#94a3b8; font-size: 0.9rem;">상의 사이즈를 먼저 선택해주세요.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: BOTTOM -->
+                <div class="section-card">
+                    <div class="section-title"><span class="badge">2</span> 하의 선택 (Bottom)</div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">
+                            사이즈 (Size) <span class="required-mark">*</span>
+                        </label>
+                        <div id="bottom_size_group" class="chip-group">
+                            <span style="color:#94a3b8; font-size: 0.9rem;">성별을 먼저 선택해주세요.</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">
+                            색상 (Color) <span class="required-mark">*</span>
+                        </label>
+                        <div id="bottom_color_group" class="chip-group color-group">
+                            <span style="color:#94a3b8; font-size: 0.9rem;">하의 사이즈를 먼저 선택해주세요.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 1rem; margin-bottom: 1rem;">
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">※ 남성 상의/하의 여부에 상관없이 양말은 세트당 성별 기본제공 색상이 포함됩니다.</p>
+                </div>
+
+                <button type="submit" class="btn btn-primary submit-btn">옵션 최종 저장하기</button>
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-title">최종 선택 확인</div>
+            <div class="modal-body" id="modalSummary">
+                <!-- Summary inserted via JS -->
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn modal-btn-cancel" onclick="closeModal()">수정하기</button>
+                <button type="button" class="modal-btn modal-btn-confirm" onclick="submitForm()">최종 제출</button>
+            </div>
         </div>
     </div>
 </body>
-
 </html>

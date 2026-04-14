@@ -1,18 +1,25 @@
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env/
 
 # Database
 *.db
+!employees_template.db # If there's a template
 
-# Uploads & User Data
+# OS
+.DS_Store
+Thumbs.db
+
+# Flask
+instance/
+.webassets-cache
+
+# Uploads
 uploads/
-*.xls
-*.xlsx
-
-# Environment variables (if any)
-.env
-
-# IDE
-.vscode/
-.idea/
+requirements.txt.bak
+scratch/
