@@ -117,12 +117,21 @@
         .size-guide-link:hover { background: #dbeafe; }
         
         .size-modal-content {
-            background: white; width: 95%; max-width: 500px;
+            background: white; width: 98%; max-width: 800px;
             border-radius: 1.25rem; padding: 1rem; position: relative;
             transform: translateY(20px); transition: transform 0.3s;
         }
         .modal-overlay.active .size-modal-content { transform: translateY(0); }
-        .size-chart-img { width: 100%; height: auto; border-radius: 0.5rem; display: block; }
+        .size-chart-container {
+            overflow: auto; max-height: 80vh; 
+            -webkit-overflow-scrolling: touch;
+            border-radius: 0.5rem;
+            background: #f8fafc;
+        }
+        .size-chart-img { 
+            width: 100%; min-width: 600px; /* Force some size for horizontal scroll on small screens */
+            height: auto; display: block; 
+        }
         .close-size-modal {
             position: absolute; top: -12px; right: -12px;
             background: #1e293b; color: white; width: 32px; height: 32px;
@@ -263,6 +272,7 @@
             const imgSrc = `/static/${fileName}`;
             
             document.getElementById('sizeChartImg').src = imgSrc;
+            document.getElementById('fullSizeLink').href = imgSrc;
             document.getElementById('sizeChartTitle').innerText = `${gender} ${part} 사이즈표`;
             document.getElementById('sizeModal').classList.add('active');
         }
@@ -494,8 +504,11 @@
         <div class="size-modal-content">
             <div class="close-size-modal" onclick="closeSizeModal()">&times;</div>
             <div id="sizeChartTitle" style="text-align: center; font-weight: 700; margin-bottom: 0.75rem; color: #1e293b;">사이즈표</div>
-            <div style="overflow: auto; max-height: 80vh;">
+            <div class="size-chart-container">
                 <img id="sizeChartImg" src="" alt="사이즈표" class="size-chart-img">
+            </div>
+            <div style="text-align: center; margin-top: 1rem;">
+                <a id="fullSizeLink" href="" target="_blank" style="font-size: 0.9rem; color: var(--primary-color); text-decoration: none; font-weight: 600;">🖼️ 이미지 원본 크게 보기 (새 창)</a>
             </div>
         </div>
     </div>
