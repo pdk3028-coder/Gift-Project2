@@ -106,6 +106,29 @@
             font-size: 1.15rem; font-weight: 700; color: #065f46; margin-bottom: 1.25rem;
             display: flex; align-items: center; gap: 0.5rem; justify-content: center;
         }
+
+        /* Size Guide Specific */
+        .size-guide-link {
+            font-size: 0.8rem; font-weight: 600; color: var(--primary-color);
+            background: #eff6ff; padding: 0.2rem 0.6rem; border-radius: 0.5rem;
+            cursor: pointer; margin-left: 0.5rem; display: inline-flex; align-items: center; gap: 0.2rem;
+            transition: all 0.2s; vertical-align: middle;
+        }
+        .size-guide-link:hover { background: #dbeafe; }
+        
+        .size-modal-content {
+            background: white; width: 95%; max-width: 500px;
+            border-radius: 1.25rem; padding: 1rem; position: relative;
+            transform: translateY(20px); transition: transform 0.3s;
+        }
+        .modal-overlay.active .size-modal-content { transform: translateY(0); }
+        .size-chart-img { width: 100%; height: auto; border-radius: 0.5rem; display: block; }
+        .close-size-modal {
+            position: absolute; top: -12px; right: -12px;
+            background: #1e293b; color: white; width: 32px; height: 32px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 1.2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
     </style>
     <script>
         const optionsData = {
@@ -226,6 +249,26 @@
             }
 
             renderChips('bottom_color_group', 'bottom_color', colors, currentBottomColor, null);
+        }
+
+        function openSizeModal(type) {
+            const gender = getRadioValue('gender');
+            if (!gender) {
+                alert('성별을 먼저 선택해주세요!');
+                return;
+            }
+            
+            const part = (type === 'top') ? '상의' : '하의';
+            const fileName = `사이즈표-${gender}(${part}).png`;
+            const imgSrc = `/static/${fileName}`;
+            
+            document.getElementById('sizeChartImg').src = imgSrc;
+            document.getElementById('sizeChartTitle').innerText = `${gender} ${part} 사이즈표`;
+            document.getElementById('sizeModal').classList.add('active');
+        }
+
+        function closeSizeModal() {
+            document.getElementById('sizeModal').classList.remove('active');
         }
 
         function showConfirmModal(event) {
@@ -384,6 +427,7 @@
                     <div style="margin-bottom: 1rem;">
                         <label style="display: block; font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">
                             사이즈 (Size) <span class="required-mark">*</span>
+                            <span class="size-guide-link" onclick="openSizeModal('top')">📏 가이드</span>
                         </label>
                         <div id="top_size_group" class="chip-group">
                             <span style="color:#94a3b8; font-size: 0.9rem;">성별을 먼저 선택해주세요.</span>
@@ -407,6 +451,7 @@
                     <div style="margin-bottom: 1rem;">
                         <label style="display: block; font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">
                             사이즈 (Size) <span class="required-mark">*</span>
+                            <span class="size-guide-link" onclick="openSizeModal('bottom')">📏 가이드</span>
                         </label>
                         <div id="bottom_size_group" class="chip-group">
                             <span style="color:#94a3b8; font-size: 0.9rem;">성별을 먼저 선택해주세요.</span>
@@ -443,6 +488,15 @@
             <div class="modal-actions">
                 <button type="button" class="modal-btn modal-btn-cancel" onclick="closeModal()">수정하기</button>
                 <button type="button" class="modal-btn modal-btn-confirm" onclick="submitForm()">최종 제출</button>
+            </div>
+        </div>
+    <!-- Size Chart Modal -->
+    <div id="sizeModal" class="modal-overlay" onclick="if(event.target === this) closeSizeModal()">
+        <div class="size-modal-content">
+            <div class="close-size-modal" onclick="closeSizeModal()">&times;</div>
+            <div id="sizeChartTitle" style="text-align: center; font-weight: 700; margin-bottom: 0.75rem; color: #1e293b;">사이즈표</div>
+            <div style="overflow: auto; max-height: 80vh;">
+                <img id="sizeChartImg" src="" alt="사이즈표" class="size-chart-img">
             </div>
         </div>
     </div>

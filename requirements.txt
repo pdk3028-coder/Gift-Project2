@@ -2,4 +2,5 @@ Flask
 Flask-Limiter
 pandas
 openpyxl
+xlrd
 Werkzeug
